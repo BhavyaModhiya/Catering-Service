@@ -1,0 +1,45 @@
+<resources>
+    <string name="app_name">KCS</string>
+    <string name="Option1">Option 1</string>
+    <string name="Option2">Option 2</string>
+    <string name="Group3">Group3</string>
+    <string name="Group4">Group4</string>
+    <string name="Group5">Group5</string>
+    <string name="category">Category</string>
+    <string name="todo">TODO</string>
+    <string name="quantity">Quantity</string>
+    <string name="list">list</string>
+    <string name="todo1">TODO</string>
+    <string name="download_pdf">Download Pdf</string>
+
+    <!--        <string-array name="Option_1">-->
+    <!--            <item>item1</item>-->
+    <!--        </string-array>-->
+
+    <!--        <string-array name="Option_2">-->
+    <!--            <item>item1</item>-->
+    <!--            <item>item2</item>-->
+    <!--        </string-array>-->
+
+    <!--    <string-array name="Group3">-->
+    <!--        <item>item1</item>-->
+    <!--        <item>item2</item>-->
+    <!--        <item>item3</item>-->
+    <!--    </string-array>-->
+
+    <!--    <string-array name="Group4">-->
+    <!--        <item>item1</item>-->
+    <!--        <item>item2</item>-->
+    <!--        <item>item3</item>-->
+    <!--        <item>item4</item>-->
+    <!--    </string-array>-->
+
+    <!--    <string-array name="Group5">-->
+    <!--        <item>item1</item>-->
+    <!--        <item>item2</item>-->
+    <!--        <item>item3</item>-->
+    <!--        <item>item4</item>-->
+    <!--        <item>item5</item>-->
+    <!--    </string-array>-->
+
+</resources>
