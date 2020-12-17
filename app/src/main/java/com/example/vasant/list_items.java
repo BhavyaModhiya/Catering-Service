@@ -12,6 +12,7 @@ import com.example.vasant.list_item_model;
 import android.Manifest;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -25,8 +26,10 @@ import android.os.Environment;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -39,11 +42,11 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
 import com.example.vasant.list_item_model;
-
 
 
 public class list_items extends AppCompatActivity {
@@ -54,12 +57,382 @@ public class list_items extends AppCompatActivity {
     String title;
     TextView itemName;
     EditText qty;
+
     private Bitmap bmp, scaledbmp;
     private listItemAdapter adapter;
     private Date dateobj;
-    private int pageWidth = 1200;
+    private int pageWidth = 1240;
     private DateFormat dateFormat;
-//    private Bitmap bmp, scaledbmp;
+    //    private Bitmap bmp, scaledbmp;
+    TextView kcsname, menu;
+    EditText partyname, address, phonenum, eventdate, eventtime, person, place, additemname;
+    private Button pdfbtn1, additembtn1;
+    ListView listViewitem;
+
+
+    String[] array1 = {
+            "મીઠું",
+            "હળદર",
+            "મરચું",
+            "કુમઠી કાશ્મીરી મરચું",
+            "પંજાબી રસોઇ માટે",
+            "નેચરલ હળદર",
+            "ધાણા",
+            "ધાણાજીરૂ",
+            "અચાર મસાલા",
+            "અચાર મસાલા સ્વીટ",
+            "ચા મસાલો",
+            "રજવાડી ગરમ મસાલો",
+            "કિચન કિંગ મસાલા",
+            "ચણા છોલે મસાલા",
+            "પાંવભાજી મસાલા",
+            "ચાટ મસાલા",
+            "ઇડલી સંભાર મસાલા",
+            "પાનીપુરી મસાલા",
+            "કસૂરી મેથી",
+            "સ્ટ્રોંગ હિંગ",
+            "કરી પાવડર",
+            "ખિચડી મસાલા",
+            "સફેદ મરચાં પાવડર",
+            "ચટપટું જીરાળુ પાવડર",
+            "કેરી ઝોલીયા મસાલા બાફલા માટે",
+            "સુંઠ પાવડર",
+            "ગરાડું મસાલા",
+            "આમચૂર પાવડર/જલજીરા",
+            "તજપાન",
+            "તજ",
+            "લવિંગ",
+            "આખુજીરૂ",
+            "આખા ધાણાં",
+            "વરીયાળી",
+            "મરી",
+            "બાદીયા",
+            "ડગર ફુલી",
+            "એલચી",
+            "જાવંત્રી",
+            "નાગકેસર",
+            "ખસખસ",
+            "જાયફળ",
+            "એલચા",
+            "શાહજીરૂ",
+            "સુંઠ",
+            "સીંધવ મીઠું",
+            "કાળુ મીઠું",
+            "કોપરાનું છીણ સિલોન",
+            "સફેદ તલ",
+            "નવી આમલી",
+            "આખા મરચાં (વધાર માટે)",
+            "મેથી",
+            "રાઈ",
+            "અજમો",
+            "વઘારના લાલ મરચાં",
+            "મગસ્તરી બી",
+            "ખારેક",
+            "સીંગદાણા કાચા",
+            "સીંગદાણા શેકેલા",
+            "ચા (ભૂકી)",
+            "કોફી (નેસકેફે)",
+            "મેથી કુરીયા",
+            "રાઇ કુરીયા",
+            "મુખવાસ",
+            "લીંબુના ફુલ",
+            "સાંજીના ફુલ",
+            "સાંજીના મોટા",
+            "ટાટા સોડા",
+            "ફટકડી",
+            "નારા છડી",
+            "વોશીંગ પાવડર",
+            "રસોઇની ખાંડ",
+            "અંબોળીયા સફેદ",
+            "ખજુર",
+            "ગોળ કોલ્હાપુરી",
+            "ગુંદર",
+            "જાડા પૌવા",
+            "નાઇલોન પૌવા",
+            "મકાઇના પૌવા",
+            "બુરૂ ખાંડ",
+            "દળેલી ખાંડ",
+            "સાબુદાણા",
+            "કોપરાની કાચલી",
+            "કોપરાની કતરણ",
+            "દુધ પાવડર",
+            "ટામેટા સોસ",
+            "દીવાસળી",
+            "પૂજાપો",
+            "શ્રીફળ",
+            "રૂ",
+            "અગરબત્તી",
+            "તેલના ડબ્બા",
+            "વરખ (થોકડી)",
+            "સાકર",
+            "ડમરૂ સેવ",
+            "પાપડી",
+            "પાપડ",
+            "મીક્ષ કેરીનું અથાણું",
+            "રમકડા",
+            "અરીઠા",
+            "હેડ્રો ",
+            "ગુલાબ કતરી(પીળી)",
+            "ટોસ્ટ",
+            "બ્રેડ",
+            "આખી ખાંડ",
+            "જામ",
+            "મમરા",
+            "સરસીયું તેલ",
+            "દેશી ઘી / ડાલડા ઘી ",
+            "લેમન મીઠો કલર",
+            "લાલ કલર",
+            "ચોકલેટ કલર",
+            "રંગ મીઠા પીળા",
+            "રંગ લીંબુ પીળા",
+            "રંગ નારંગી(ઓરેન્જ)",
+            "રંગ લીલો",
+            "રંગ રાસબરી",
+            "ગુલાબ જળ",
+            "સંતરા એસેન્સ",
+            "ગુલાબ એસેન્સ",
+            "કેવડા એસેન્સ",
+            "વેનીલા વ્હાઇટ એસેન્સ",
+            "બેકીંગ પાવડર",
+            "કસ્ટર્ડ પાવડર",
+            "ચોકલેટ પાવડર",
+            "મેંગો એસેન્સ",
+            "ઓરેન્જ રસના",
+            "કાજુ",
+            "કાજુના ફાડા",
+            "દ્રાક્ષ",
+            "બદામ",
+            "પીસ્તા",
+            "કેસર",
+            "ચારોળી",
+            "બદામના ટુકડા",
+            "પીસ્તાના ટુકડા",
+            "મખાણા",
+            "અંજીર",
+            "અખરોટ",
+            "બાસમતી ચોખા",
+            "ખિચડીના ચોખા",
+            "બોઇલ ચોખા",
+            "તુવેર દાળ",
+            "મગની દાળ",
+            "ચણા દાળ",
+            "છોલે ચણા",
+            "લીલા વટાણા",
+            "મઠ",
+            "અડદ દાળ",
+            "મસૂર દાળ",
+            "સાબુદાણા ડબલ",
+            "મુંગ દાલ છાલવાળી",
+            "ચણા કાબુલી બોલ્ડ",
+            "મસૂર આખી",
+            "દેશી ચણા",
+            "ચોળા દાળ",
+            "રાજમા",
+            "અડદ દાળ છોતરાવાળી",
+            "વડી",
+            "ઘઉંનો લોટ (કકરો)",
+            "ઘઉંનો લોટ",
+            "બેસણ ૧ નંબર",
+            "બેસણ (મીલનું)",
+            "લાપસી ફાડા",
+            "ચોખાનો લોટ",
+            "શીંગોડાનો લોટ",
+            "આરાનો લોટ",
+            "બાજરીનો લોટ",
+            "મકાઇનો લોટ",
+            "જુવારનો લોટ",
+            "રવો",
+            "મેંદો",
+            "બેસણ દોઢ નંબર",
+            "અડદનો લોટ",
+            "ઇડલીનો લોટ",
+            "સોજી"};
+
+    String[] array2 = {
+            "લીલા દેશી મરચાં",
+            "લીલા ધાણાં",
+            "પાલકની ભાજી",
+            "આદું",
+            "ફુદીનો",
+            "લીંબુ",
+            "પીળી આંબા હળદર",
+            "મીઠો લીમડો",
+            "લીલુ લસણ",
+            "સુકું લસણ",
+            "સુરણ",
+            "મુળા",
+            "સલાડની કાકડી",
+            "ગાજર",
+            "કોળુ",
+            "બટાકા",
+            "દુધી",
+            "ટામેટાં લાલ/ લીલા",
+            "ગરાડું",
+            "ટીંડોળા",
+            "રીંગણ",
+            "કાંદા (ડુંગળી)",
+            "ભીંડા",
+            "બીટ (લાલ)",
+            "વટાણાની સિંગ",
+            "ફુલ ગોબી/ પત્તા ગોબી",
+            "સરસો/ અરબી",
+            "મેથી ભાજી/કારેલા",
+            "ગલકા/તરોઇ",
+            "શક્કરીયા",
+            "સીમલા મરચાં",
+            "અળવીના પાના",
+            "કાચા કેળા",
+            "લીલા ચણા (દાણા)",
+            "કાકડી",
+            "દોડા નરમ",
+            "ગવાર ફળી",
+            "પલુર",
+            "સફરજન",
+            "લાલ દાડમ",
+            "લીલી દ્રાક્ષ",
+            "પાકા કેળા",
+            "પાઇનેપલ",
+            "ચીકું",
+            "પાકી કેરી",
+            "કાચી કેરી",
+            "મોસંબી",
+            "તડબુચ",
+            "ચેરી",
+            "પપૈયુ",
+            "સંતરા",
+            "દ્રાક્ષ કાળી",
+            "પાકી કેરી (બદામ)",
+            "પાકી કેરી તોતાપુરી",
+            "કેરી દસેરી",
+            "કેરી લંગડા",
+            "કેરી લાલ પટ્ટો",
+            "શક્કરટેટી",
+    };
+
+    String[] array3 = {
+            "ચીઝ",
+            "માખણ (અમૂલ)",
+            "પનીર",
+            "ક્રીમ",
+            "ગાયનું ઘી",
+            "કેરીનો રસ",
+            "શ્રીખંડ",
+            "મઠો",
+            "બરફ",
+            "કોપરા પાકનો માવો",
+            "માવો (દાનાદાર)",
+            "માવા (બરફી)",
+            "દહીં સર્પેટા",
+            "દહીં (સવારે)",
+            "દહીં (સાંજે)",
+            "ખમીર",
+    };
+    String[] array4 = {
+            "રસોઇના મોટા તપેલા",
+            "રસોઇના નાના તપેલા",
+            "છીબા (વાસણ મુકવાનું)",
+            "મોટા થાળા (પતરા)",
+            "નાના થાળા (પતરા)",
+            "કમંડળ",
+            "સ્ટીલની ડોલ",
+            "ઘામા",
+            "ચમચા (મોટા)",
+            "ચમચી (નાની)",
+            "જગ",
+            "ભાતીયા",
+            "વાટકા ડોયા",
+            "વાસણ ધોવા માટે ટબ",
+            "બુફેની મોટી ડીશ",
+            "સ્ટીલના બાઉલ",
+            "રાઇસ પ્લેટ",
+            "થાળી",
+            "વાટકી",
+            "ગ્લાસ",
+            "સ્ટીલની કોઠી નાની",
+            "સ્ટીલની કોઠી મોટી",
+            "પાણીના મોટા પીપ",
+            "પીત્તળની પરાત નાની",
+            "મીઠાઇની ચોરસ ટ્રે",
+            "દુઘની કઢાઇ",
+            "માવાની કઢાઇ",
+            "બરફની કઢાઇ",
+            "નાની કઢાઈ",
+            "જલેબીની કઢાઇ",
+            "પરોઠાનો તવો",
+            "ભાંજીપાવનો તવો",
+            "મોટા તપેલા (એલ્યુમિનિયમ)",
+            "બેકીંગ ડીશની ચોકી",
+            "તવેથા",
+            "ઝારા",
+            "કોલસાનો સગડો",
+            "કોલસા",
+            "કેરોસીન",
+            "લાકડા",
+            "મલમલનું કપડું",
+            "ચીપીયો",
+            "મિકસર ગ્રાઇન્ડર",
+            "વોશ બેઝીન",
+            "ફ્યુલ",
+            "સિલ્વર ફોઇલ રોલ",
+            "પાટલા",
+            "આડણી",
+            "ચપ્પુ",
+            "કટર",
+            "છીણી",
+            "બટાકા છોલવાની કટર",
+            "ગેસના સગડા",
+            "ઢોસાની ભટ્ટી",
+            "ગેસના બાટલા",
+            "ઇંટો",
+            "જાજમ શેતરંજી",
+            "ઘઉંનો ચારણો",
+            "ચોખાનો ચારણો",
+            "ત્રાજવા, બાટ(વજનીયાં)",
+            "વેસ્ટ ગાબા",
+            "નવું કંતાન",
+            "નવા ધોતીયા",
+            "વાંસની ટોપલી",
+            "પાણી માટે માદરપાટ",
+            "સાવરણી",
+            "પતરાળા",
+            "કેસર ખરલ",
+            "છાણ",
+            "પડીયા",
+            "પેપર રદ્દી",
+            "પેપર નેપકીન",
+            "પેપર ડીસ",
+            "થર્મોકોલ વાટકી",
+            "થર્મોકોલ ગ્લાસ",
+            "પાવડો",
+            "માટીના માટલા",
+            "રસોડા ઉપર મંડપ",
+            "ખાલી બારદાન",
+            "હેલોજન",
+            "પેડેસ્ટલ ફેન",
+            "કુલર",
+            "સેલો ખુરશી",
+            "બુફે ટેબલ",
+            "ગાદલા",
+            "તકીયા",
+            "લોટની ચારણી",
+            "ચાની ચારણી",
+            "ખાંડણી",
+            "ગેસની સગડી (ઘરની)",
+            "પુરીની કડાઇ",
+            "સેવ કડાઇ મીડીયમ",
+            "સેવ કડાઇ નાની",
+            "તવા મોટા",
+            "તવા મીડીયમ",
+            "ટ્રે",
+            "ઈડલી કુકર",
+            "કનાત",
+            "ચાનું થરમોસ",
+            "બાફલા સુકાવવાની ચાદર",
+            "પ્લાસ્ટીકની થેલી મોટી",
+            "ચા ના કપ",
+    };
+
+    HashMap<String, String[]> map = new HashMap<String, String[]>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,8 +446,24 @@ public class list_items extends AppCompatActivity {
         itemName = findViewById(R.id.list);
         qty = findViewById(R.id.quantityy);
 
+        kcsname = findViewById(R.id.kcsname);
+        partyname = findViewById(R.id.partyname);
+        address = findViewById(R.id.sarnamu);
+        phonenum = findViewById(R.id.phonenum);
+        eventdate = findViewById(R.id.eventdate);
+        eventtime = findViewById(R.id.eventtime);
+        person = findViewById(R.id.person);
+        place = findViewById(R.id.place);
+        pdfbtn1 = findViewById(R.id.pdfbtn1);
+        menu = findViewById(R.id.viewmenu);
+
+        map.put("કરિયાણા મસાલા", array1);
+        map.put("લીલા શાકભાજી", array2);
+        map.put("ડેરીની યાદી", array3);
+        map.put("વાસણોનું લિસ્ટ", array4);
+
         bmp = BitmapFactory.decodeResource(getResources(), R.drawable.kcspdfpic);
-        scaledbmp = Bitmap.createScaledBitmap(bmp, 1200, 381, false);
+        scaledbmp = Bitmap.createScaledBitmap(bmp, 1240, 381, false);
 
         ActivityCompat.requestPermissions(this, new String[]{
                 Manifest.permission.WRITE_EXTERNAL_STORAGE}, PackageManager.PERMISSION_GRANTED);
@@ -89,108 +478,36 @@ public class list_items extends AppCompatActivity {
 
         List<list_item_model> list = new ArrayList<>();
         switch (getIntent().getStringExtra("category")) {
-            case "શાકભાજી":
-                list.add(new list_item_model("Item_1"));
-                list.add(new list_item_model("શાકભાજી"));
-                list.add(new list_item_model("Item_2"));
-                list.add(new list_item_model("શાકભાજી"));
-                list.add(new list_item_model("Item_3"));
-                list.add(new list_item_model("શાકભાજી"));
-                list.add(new list_item_model("Item_4"));
-                list.add(new list_item_model("શાકભાજી"));
-                list.add(new list_item_model("Item_4"));
-                list.add(new list_item_model("Item_1"));
-                list.add(new list_item_model("શાકભાજી"));
-                list.add(new list_item_model("Item_2"));
-                list.add(new list_item_model("શાકભાજી"));
-                list.add(new list_item_model("Item_3"));
-                list.add(new list_item_model("શાકભાજી"));
-                list.add(new list_item_model("Item_4"));
-                list.add(new list_item_model("શાકભાજી"));
-                list.add(new list_item_model("Item_4"));
-                list.add(new list_item_model("Item_1"));
-                list.add(new list_item_model("શાકભાજી"));
-                list.add(new list_item_model("Item_2"));
-                list.add(new list_item_model("શાકભાજી"));
-                list.add(new list_item_model("Item_3"));
-                list.add(new list_item_model("શાકભાજી"));
-                list.add(new list_item_model("Item_4"));
-                list.add(new list_item_model("શાકભાજી"));
-                list.add(new list_item_model("Item_4"));
-                list.add(new list_item_model("Item_1"));
-                list.add(new list_item_model("શાકભાજી"));
-                list.add(new list_item_model("Item_2"));
-                list.add(new list_item_model("શાકભાજી"));
-                list.add(new list_item_model("Item_3"));
-                list.add(new list_item_model("શાકભાજી"));
-                list.add(new list_item_model("Item_4"));
-                list.add(new list_item_model("શાકભાજી"));
-                list.add(new list_item_model("Item_4"));
-                list.add(new list_item_model("Item_1"));
-                list.add(new list_item_model("શાકભાજી"));
-                list.add(new list_item_model("Item_2"));
-                list.add(new list_item_model("શાકભાજી"));
-                list.add(new list_item_model("Item_3"));
-                list.add(new list_item_model("શાકભાજી"));
-                list.add(new list_item_model("Item_4"));
-                list.add(new list_item_model("શાકભાજી"));
-                list.add(new list_item_model("Item_4"));
-                list.add(new list_item_model("Item_1"));
-                list.add(new list_item_model("શાકભાજી"));
-                list.add(new list_item_model("Item_2"));
-                list.add(new list_item_model("શાકભાજી"));
-                list.add(new list_item_model("Item_3"));
-                list.add(new list_item_model("શાકભાજી"));
-                list.add(new list_item_model("Item_4"));
-                list.add(new list_item_model("શાકભાજી"));
-                list.add(new list_item_model("Item_4"));
-                list.add(new list_item_model("Item_1"));
-                list.add(new list_item_model("શાકભાજી"));
-                list.add(new list_item_model("Item_2"));
-                list.add(new list_item_model("શાકભાજી"));
-                list.add(new list_item_model("Item_3"));
-                list.add(new list_item_model("શાકભાજી"));
-                list.add(new list_item_model("Item_4"));
-                list.add(new list_item_model("શાકભાજી"));
-                list.add(new list_item_model("Item_4"));
-                list.add(new list_item_model("Item_1"));
-                list.add(new list_item_model("શાકભાજી"));
-                list.add(new list_item_model("Item_2"));
-                list.add(new list_item_model("શાકભાજી"));
-                list.add(new list_item_model("Item_3"));
-                list.add(new list_item_model("શાકભાજી"));
-                list.add(new list_item_model("Item_4"));
-                list.add(new list_item_model("શાકભાજી"));
+            case "ઓર્ડર માહિતી":
+                setContentView(R.layout.frontpage);
+                final ArrayList<String> menulist;
+                final ArrayAdapter<String> adapterlist;
+                additemname = findViewById(R.id.itemname);
+                additembtn1 = findViewById(R.id.additembtn);
+                listViewitem = findViewById(R.id.listviewitem);
 
+                menulist = new ArrayList<>();
+                adapterlist = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, menulist);
 
-                break;
-            case "Option_2":
-                list.add(new list_item_model("Item_1"));
-                list.add(new list_item_model("Item_2"));
-                list.add(new list_item_model("Item_3"));
+                View.OnClickListener addlistner = new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        menulist.add(additemname.getText().toString());
+                        additemname.setText("");
+                        adapterlist.notifyDataSetChanged();
+                    }
+                };
 
-                break;
-            case "Option_3":
-                list.add(new list_item_model("Item_1"));
-                list.add(new list_item_model("Item_2"));
-                list.add(new list_item_model("Item_4"));
-                break;
-            case "Option_4":
-                list.add(new list_item_model("Item_4"));
-                list.add(new list_item_model("Item_2"));
-                list.add(new list_item_model("Item_4"));
-                break;
-            case "Option_5":
-                list.add(new list_item_model("Item_5"));
-                list.add(new list_item_model("Item_2"));
-                list.add(new list_item_model("Item_4"));
-                break;
-            case "Option_6":
-                list.add(new list_item_model("Item_6"));
-                list.add(new list_item_model("Item_2"));
-                list.add(new list_item_model("Item_4"));
+                additembtn1.setOnClickListener(addlistner);
+                listViewitem.setAdapter(adapterlist);
                 break;
             default:
+                String category = getIntent().getStringExtra("category");
+                if(map.containsKey(category)) {
+                    for (String s : map.get(category)) {
+                        list.add(new list_item_model(s));
+                    }
+                }
         }
 
         rvlist.setLayoutManager(layoutManager);
@@ -209,53 +526,112 @@ public class list_items extends AppCompatActivity {
                 Dialog.setIndeterminate(false);
                 Dialog.setCancelable(false);
                 Dialog.show();
-                Log.e("afterTextcng", adapter.getItemlist().get(0).toString());
+                List<list_item_model> itemList = adapter.getItemlist();
+                Log.e("afterTextcng", itemList.get(0).toString());
                 PdfDocument myPdfDocument = new PdfDocument();
                 dateobj = new Date();
-                int height = 0;
+                int height = 470;
                 Paint myPaint = new Paint();
-                Paint titlepaint= new Paint();
+                Paint titlepaint = new Paint();
+                int pageNum = 1;
+                int pageHeight = 1754;
+                int pageWidth = 1240;
 
-                PdfDocument.PageInfo myPageInfo1 = new PdfDocument.PageInfo.Builder(1200, 2010, 1).create();
-                PdfDocument.Page myPage1 = myPdfDocument.startPage(myPageInfo1);
-                Canvas canvas = myPage1.getCanvas();
+
+                PdfDocument.PageInfo myPageInfo = new PdfDocument.PageInfo.Builder(pageWidth, pageHeight, pageNum).create();
+                PdfDocument.Page myPage = myPdfDocument.startPage(myPageInfo);
+                Canvas canvas = myPage.getCanvas();
 
                 canvas.drawBitmap(scaledbmp, 0, 0, myPaint);
                 titlepaint.setTextAlign(Paint.Align.CENTER);
-                titlepaint.setTypeface(Typeface.create(Typeface.DEFAULT,Typeface.BOLD));
+                titlepaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
                 titlepaint.setTextSize(35);
-                canvas.drawText(getIntent().getStringExtra("category")+"",pageWidth/2,400,titlepaint);
+                canvas.drawText(getIntent().getStringExtra("category") + "", pageWidth / 2, 400, titlepaint);
 
                 dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH);
-                canvas.drawText("Date:" + dateFormat.format(dateobj), pageWidth - 115, 400, myPaint);
+                myPaint.setTextSize(20);
+                canvas.drawText("Date:" + dateFormat.format(dateobj), pageWidth - 173, 400, myPaint);
 
+                
+                
                 myPaint.setStyle(Paint.Style.STROKE);
                 myPaint.setStrokeWidth(2);
-                canvas.drawRect(20, 440, pageWidth - 20, 470, myPaint);
+                canvas.drawRect(20, 432, pageWidth - 20, 471, myPaint);
 
                 myPaint.setTextAlign(Paint.Align.LEFT);
                 myPaint.setStyle(Paint.Style.FILL);
+                myPaint.setTextSize(25);
                 canvas.drawText("Sr. No.", 40, 460, myPaint);
+                myPaint.setTextSize(25);
                 canvas.drawText("Item Name", 200, 460, myPaint);
+                myPaint.setTextSize(25);
                 canvas.drawText("Quantity", 900, 460, myPaint);
-                Log.e("itemlist", adapter.getItemlist().size() + "");
-                Log.e("forloop2", adapter.getItemlist().get(1).getList_qty());
+                Log.e("itemlist", itemList.size() + "");
+                Log.e("forloop2", itemList.get(1).getList_qty());
 
 
-                canvas.drawLine(180, 440, 180, 470, myPaint);
-                canvas.drawLine(880, 440, 880, 470, myPaint);
-                for (int z = 0; z < adapter.getItemlist().size(); z++) {
-                    if (adapter.getItemlist().get(z).getList_qty() != null) {
-                        height = height + 20;
-                        Log.d("forloopz", z + "---" + adapter.getItemlist().get(z).getList_qty());
-                        //  if(qty.getText().toString()==""){
-                        canvas.drawText(z + 1 + "", 40, 480 + height, myPaint);
-                        canvas.drawText(adapter.getItemlist().get(z).getList_Name(), 200, 480 + height, myPaint);
-                        canvas.drawText(adapter.getItemlist().get(z).getList_qty(), 900, 480 + height, myPaint);
+                canvas.drawLine(180, 432, 180, 471, myPaint);
+                canvas.drawLine(880, 432, 880, 471, myPaint);
+                int k = 0;
+
+                int numberXMargin = 40;
+                int nameXMargin = 200;
+                int quantityXMargin = 900;
+
+                for (list_item_model item: itemList) {
+                    if (item.getList_qty() != null) {
+                        if (item.getList_qty().length() > 0) {
+                            if(height + 35 <= pageHeight - 20) {
+                                k++;
+                                height = height + 35;
+                                myPaint.setTextSize(25);
+                                canvas.drawText(String.valueOf(k), numberXMargin, height, myPaint);
+                                myPaint.setTextSize(25);
+                                canvas.drawText(item.getList_Name(), nameXMargin, height, myPaint);
+                                myPaint.setTextSize(25);
+                                canvas.drawText(item.getList_qty(), quantityXMargin, height, myPaint);
+                                canvas.drawLine(20, height + 10, pageWidth - 20, 10 + height, myPaint);
+                            }
+                            else {
+                                int topMargin = 50;
+                                myPdfDocument.finishPage(myPage);
+                                myPageInfo = new PdfDocument.PageInfo.Builder(pageWidth, pageHeight, ++pageNum).create();
+                                myPage = myPdfDocument.startPage(myPageInfo);
+                                canvas = myPage.getCanvas();
+                                myPaint.setStyle(Paint.Style.STROKE);
+                                myPaint.setStrokeWidth(2);
+                                canvas.drawRect(20, topMargin - 20, pageWidth - 20, topMargin + 19, myPaint);
+                                myPaint.setTextAlign(Paint.Align.LEFT);
+                                myPaint.setStyle(Paint.Style.FILL);
+                                myPaint.setTextSize(25);
+                                canvas.drawText("Sr. No.", numberXMargin, topMargin+10, myPaint);
+                                myPaint.setTextSize(25);
+                                canvas.drawText("Item Name", nameXMargin, topMargin+10, myPaint);
+                                myPaint.setTextSize(25);
+                                canvas.drawText("Quantity", quantityXMargin, topMargin+10, myPaint);
+                                Log.e("itemlist", itemList.size() + "");
+                                Log.e("forloop2", itemList.get(1).getList_qty());
+
+
+                                canvas.drawLine(180,topMargin - 20 , 180, topMargin + 19, myPaint);
+                                canvas.drawLine(880, topMargin - 20, 880, topMargin + 19, myPaint);
+
+                                height = topMargin + 20;
+                                k++;
+                                height = height + 35;
+                                myPaint.setTextSize(25);
+                                canvas.drawText(String.valueOf(k), numberXMargin, height, myPaint);
+                                myPaint.setTextSize(25);
+                                canvas.drawText(item.getList_Name(), nameXMargin, height, myPaint);
+                                myPaint.setTextSize(25);
+                                canvas.drawText(item.getList_qty(), quantityXMargin, height, myPaint);
+                                canvas.drawLine(20, height + 10, pageWidth - 20, height + 10, myPaint);
+                            }
+                        }
                     }
-                    Log.e("After if", "onClick: Outside the if statement");
                 }
-                myPdfDocument.finishPage(myPage1);
+                Dialog.dismiss();
+                myPdfDocument.finishPage(myPage);
                 try {
                     File file = new File(Environment.getExternalStorageDirectory(), getIntent().getStringExtra("category") + ".pdf");
                     myPdfDocument.writeTo(new FileOutputStream(file));
@@ -263,11 +639,14 @@ public class list_items extends AppCompatActivity {
                     e.printStackTrace();
                 }
                 myPdfDocument.close();
-                Dialog.dismiss();
+                Toast.makeText(getApplicationContext(), "PDF Is Created", Toast.LENGTH_LONG).show();
+                Intent listintent = new Intent(list_items.this, Category.class);
+                startActivity(listintent);
+                Animatoo.animateSpin(list_items.this);
+
             }
         });
     }
-
 
 
 //  );}

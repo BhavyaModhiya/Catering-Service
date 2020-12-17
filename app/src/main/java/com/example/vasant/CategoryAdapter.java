@@ -9,6 +9,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.blogspot.atifsoftwares.animatoolib.Animatoo;
+
 import java.util.List;
 
 public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Viewholder> {
@@ -58,6 +60,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Viewho
                     Intent setIntent=new Intent(itemView.getContext(), list_items.class);
                     setIntent.putExtra("category",title);
                     itemView.getContext().startActivity(setIntent);
+
                 }
             });
         }
