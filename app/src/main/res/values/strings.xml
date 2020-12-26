@@ -12,6 +12,7 @@
     <string name="todo1">TODO</string>
     <string name="download_pdf">Download Pdf</string>
     <string name="karan_catering_service">Karan Catering Service</string>
+    <string name="done_next"><![CDATA[Done & Next]]></string>
 
     <!--        <string-array name="Option_1">-->
     <!--            <item>item1</item>-->

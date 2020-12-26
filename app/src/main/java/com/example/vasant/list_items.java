@@ -20,6 +20,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.graphics.pdf.PdfDocument;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
@@ -65,9 +66,13 @@ public class list_items extends AppCompatActivity {
     private DateFormat dateFormat;
     //    private Bitmap bmp, scaledbmp;
     TextView kcsname, menu;
-    EditText partyname, address, phonenum, eventdate, eventtime, person, place, additemname;
-    private Button pdfbtn1, additembtn1;
+    EditText partyname, address, phonenum, eventdate, eventtime, person, priceperdish, place, additemname;
+    private Button pdfbtn1, additembtn1,nextbtn, sharepdfbtn;
     ListView listViewitem;
+    String[] menulistarray;
+    ArrayList<String> menulist;
+    ArrayAdapter<String> adapterlist;
+    File file;
 
 
     String[] array1 = {
@@ -453,9 +458,22 @@ public class list_items extends AppCompatActivity {
         eventdate = findViewById(R.id.eventdate);
         eventtime = findViewById(R.id.eventtime);
         person = findViewById(R.id.person);
+        priceperdish= findViewById(R.id.priceperdish);
         place = findViewById(R.id.place);
-        pdfbtn1 = findViewById(R.id.pdfbtn1);
+        sharepdfbtn=findViewById(R.id.sharepdfbtn);
         menu = findViewById(R.id.viewmenu);
+
+        sharepdfbtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                shareIntent.setType("application/pdf");
+                shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(file));
+                startActivity(shareIntent);
+            }
+        });
+
 
         map.put("કરિયાણા મસાલા", array1);
         map.put("લીલા શાકભાજી", array2);
@@ -463,7 +481,7 @@ public class list_items extends AppCompatActivity {
         map.put("વાસણોનું લિસ્ટ", array4);
 
         bmp = BitmapFactory.decodeResource(getResources(), R.drawable.kcspdfpic);
-        scaledbmp = Bitmap.createScaledBitmap(bmp, 1240, 381, false);
+        scaledbmp = Bitmap.createScaledBitmap(bmp, 1240, 293, false);
 
         ActivityCompat.requestPermissions(this, new String[]{
                 Manifest.permission.WRITE_EXTERNAL_STORAGE}, PackageManager.PERMISSION_GRANTED);
@@ -480,26 +498,62 @@ public class list_items extends AppCompatActivity {
         switch (getIntent().getStringExtra("category")) {
             case "ઓર્ડર માહિતી":
                 setContentView(R.layout.frontpage);
-                final ArrayList<String> menulist;
-                final ArrayAdapter<String> adapterlist;
-                additemname = findViewById(R.id.itemname);
-                additembtn1 = findViewById(R.id.additembtn);
-                listViewitem = findViewById(R.id.listviewitem);
 
-                menulist = new ArrayList<>();
-                adapterlist = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, menulist);
+                nextbtn=findViewById(R.id.nextbtn);
 
-                View.OnClickListener addlistner = new View.OnClickListener() {
+                nextbtn.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        menulist.add(additemname.getText().toString());
-                        additemname.setText("");
-                        adapterlist.notifyDataSetChanged();
-                    }
-                };
+                        Order theOrder = Order.getInstance();
+                        String phoneNum = ((EditText)findViewById(R.id.phonenum)).getText().toString();
+                        String numberOfPersons = ((EditText)findViewById(R.id.person)).getText().toString();
+                        String priceperdish = ((EditText)findViewById(R.id.priceperdish)).getText().toString();
+                        Log.d("In data fetch: ", "onClick: number of persons = " + numberOfPersons);
+                        theOrder.setData(
+                                ((EditText)findViewById(R.id.partyname)).getText().toString(),
+                                ((EditText)findViewById(R.id.sarnamu)).getText().toString(),
+                                Long.parseLong(phoneNum.equals("") ? "0" : phoneNum),
+                                ((EditText)findViewById(R.id.eventdate)).getText().toString(),
+                                ((EditText)findViewById(R.id.eventtime)).getText().toString(),
+                                Integer.parseInt(numberOfPersons.equals("") ? "0" : numberOfPersons),
+                                Integer.parseInt(priceperdish.equals("") ? "0" : priceperdish),
+                                ((EditText)findViewById(R.id.place)).getText().toString()
+                        );
 
-                additembtn1.setOnClickListener(addlistner);
-                listViewitem.setAdapter(adapterlist);
+                        setContentView(R.layout.menuitems);
+                        additemname = findViewById(R.id.itemname);
+                        additembtn1 = findViewById(R.id.additembtn);
+                        listViewitem = findViewById(R.id.listviewitem);
+                        pdfbtn1 = findViewById(R.id.pdfbtn2);
+
+                       // final ArrayList<String> menulist;
+                       // final ArrayAdapter<String> adapterlist;
+
+                        menulist = new ArrayList<>();
+                        adapterlist = new ArrayAdapter<String>(list_items.this, R.layout.listviewshow, menulist);
+                        View.OnClickListener addlistner = new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                if(additemname.getText().toString().isEmpty()){
+                                       additemname.setError("Required");
+                                }else {
+                                menulist.add(additemname.getText().toString());
+                                additemname.setText("");
+                                adapterlist.notifyDataSetChanged();}
+                              //  Log.e("menuitems", adapterlist);
+                            }
+                        };
+                        additembtn1.setOnClickListener(addlistner);
+                        listViewitem.setAdapter(adapterlist);
+                        pdfbtn1.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                orderPDF();
+                            }
+                        });
+                    }
+                });
+
                 break;
             default:
                 String category = getIntent().getStringExtra("category");
@@ -517,20 +571,144 @@ public class list_items extends AppCompatActivity {
         Log.e("aftercratepdf", "after");
     }
 
+    private void orderPDF() {
+        int pageNum = 1;
+        int pageHeight = 1754;
+        int pageWidth = 1240;
+        int height=602;
+        Paint myPaint1 = new Paint();
+        Paint titlepaint1 = new Paint();
+        PdfDocument myPdfDocument1 = new PdfDocument();
+
+        PdfDocument.PageInfo myPageInfo = new PdfDocument.PageInfo.Builder(pageWidth, pageHeight, pageNum).create();
+        PdfDocument.Page myPage = myPdfDocument1.startPage(myPageInfo);
+        Canvas canvas = myPage.getCanvas();
+
+        canvas.drawBitmap(scaledbmp, 0, 0, myPaint1);
+
+//        myPaint1.setStrokeWidth(4);
+//        canvas.drawLine(20,  371, pageWidth - 20, 371 , myPaint1);
+//
+//        canvas.drawLine(20,  371, 20, 600 , myPaint1);
+//
+//        canvas.drawLine(pageWidth  - 20,  371, pageWidth - 20, 600 , myPaint1);
+        myPaint1.setStrokeWidth(2);
+        myPaint1.setTextSize(28);
+        canvas.drawText("પાર્ટીનું નામ :", 30, 317, myPaint1);
+        Order myOrder = Order.getInstance();
+        canvas.drawText(myOrder.getPartyName()+"", 163, 317, myPaint1);
+        Log.d("TryingOutOrders", "orderPDF: myOrder: " + myOrder.getPartyName());
+        myPaint1.setStrokeWidth(1);
+        canvas.drawLine(151,  322, pageWidth-40, 322 , myPaint1);
+
+        myPaint1.setTextSize(28);
+        canvas.drawText("સરનામું :", 30, 355, myPaint1);
+        canvas.drawText(myOrder.getAddress(), 123, 355, myPaint1);
+        canvas.drawLine(115,  357, pageWidth-40, 357 , myPaint1);
+
+        myPaint1.setTextSize(28);
+        canvas.drawText("વ્યક્તિ :", 30, 387, myPaint1);
+        canvas.drawText(myOrder.getNoOfPerson()+"", 119, 387, myPaint1);
+        canvas.drawLine(108,  392, 440, 392 , myPaint1);
+
+        myPaint1.setTextSize(28);
+        canvas.drawText("ભાવ(વ્યક્તિદીઠ) :", 480, 391, myPaint1);
+        canvas.drawText(myOrder.getPriceperdish()+"", 665, 391, myPaint1);
+        canvas.drawLine(658,  396, pageWidth-40, 394 , myPaint1);
+
+        myPaint1.setTextSize(28);
+        canvas.drawText("ભોજન સમારંભની તારીખ :", 30, 422, myPaint1);
+        canvas.drawText(myOrder.getDate()+"", 297, 422, myPaint1);
+        canvas.drawLine(288,  427, pageWidth-40, 427 , myPaint1);
+
+        myPaint1.setTextSize(28);
+        canvas.drawText("સમય :", 30, 457, myPaint1);
+        canvas.drawText(myOrder.getTime()+"", 108, 457, myPaint1);
+        canvas.drawLine(99,  462, 440, 462 , myPaint1);
+
+        myPaint1.setTextSize(28);
+        canvas.drawText("ફોન નંબર :", 480, 457, myPaint1);
+        canvas.drawText(myOrder.getPhoneNum()+"", 592, 457, myPaint1);
+        canvas.drawLine(586,  462, pageWidth-40, 462 , myPaint1);
+
+        myPaint1.setTextSize(28);
+        canvas.drawText("સ્થળ :", 30, 492, myPaint1);
+        canvas.drawText(myOrder.getPlace()+"", 109, 492, myPaint1);
+        canvas.drawLine(99,  497, pageWidth-40, 497 , myPaint1);
+
+        titlepaint1.setTextAlign(Paint.Align.CENTER);
+        titlepaint1.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+        titlepaint1.setTextSize(35);
+        canvas.drawText("વાનગીઓનો રસથાળ", pageWidth / 2, 557, titlepaint1);
+        titlepaint1.setStrokeWidth(3);
+        canvas.drawLine(482,  562, 762, 562 , titlepaint1);
+
+
+
+//        myPaint1.setStrokeWidth(4);
+//        canvas.drawLine(20,  600, pageWidth - 20, 600 , myPaint1);
+        myPaint1.setStyle(Paint.Style.STROKE);
+        myPaint1.setStrokeWidth(3);
+        canvas.drawRect(20, 286, pageWidth - 20, 512, myPaint1);
+
+        myPaint1.setStyle(Paint.Style.STROKE);
+        myPaint1.setStrokeWidth(3);
+        canvas.drawRect(20, 572, pageWidth - 20, 607, myPaint1);
+
+        myPaint1.setTextAlign(Paint.Align.CENTER);
+        myPaint1.setStyle(Paint.Style.FILL);
+        myPaint1.setTextSize(28);
+        canvas.drawText("Sr. No.", 152, 598, myPaint1);
+        myPaint1.setTextSize(28);
+        canvas.drawText("Item Name", pageWidth/2, 598, myPaint1);
+        canvas.drawLine(370, 572, 370, 607, myPaint1);
+
+        int i=0;
+        while (i<menulist.size()){
+            height=height+35;
+            canvas.drawText(i+1+".", 160, height, myPaint1);
+            canvas.drawText(adapterlist.getItem(i), pageWidth/2, height, myPaint1);
+            myPaint1.setStrokeWidth(1);
+            canvas.drawLine(45, height +10, pageWidth - 45, 10 + height, myPaint1);
+
+            // Log.e("menuitemss",adapterlist.getItem(i)+i);
+            i++;
+        }
+
+        myPdfDocument1.finishPage(myPage);
+        try {
+            File file = new File(Environment.getExternalStorageDirectory(), myOrder.getPartyName()+" "+getIntent().getStringExtra("category") + ".pdf");
+            myPdfDocument1.writeTo(new FileOutputStream(file));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        myPdfDocument1.close();
+        Toast.makeText(getApplicationContext(), "PDF Is Created", Toast.LENGTH_LONG).show();
+        Intent listintent = new Intent(list_items.this, Category.class);
+        startActivity(listintent);
+        Animatoo.animateSpin(list_items.this);
+    }
+
     private void createPDF(final listItemAdapter adapter) {
         pdfbtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Dialog = new ProgressDialog(list_items.this);
-                Dialog.setMessage("Please wait...");
-                Dialog.setIndeterminate(false);
-                Dialog.setCancelable(false);
-                Dialog.show();
+//                Dialog = new ProgressDialog(list_items.this);
+//                Dialog.setMessage("Please wait...");
+//                Dialog.setIndeterminate(false);
+//                Dialog.setCancelable(false);
+//                Dialog.show();
                 List<list_item_model> itemList = adapter.getItemlist();
+
+                if (itemList.get(0).getList_qty()==null){
+                    Toast.makeText(getApplicationContext(), "Enter Values of Quantity", Toast.LENGTH_LONG).show();
+
+                }
+                else {
                 Log.e("afterTextcng", itemList.get(0).toString());
-                PdfDocument myPdfDocument = new PdfDocument();
+                final PdfDocument myPdfDocument = new PdfDocument();
                 dateobj = new Date();
-                int height = 470;
+                int height = 378;
                 Paint myPaint = new Paint();
                 Paint titlepaint = new Paint();
                 int pageNum = 1;
@@ -546,51 +724,62 @@ public class list_items extends AppCompatActivity {
                 titlepaint.setTextAlign(Paint.Align.CENTER);
                 titlepaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
                 titlepaint.setTextSize(35);
-                canvas.drawText(getIntent().getStringExtra("category") + "", pageWidth / 2, 400, titlepaint);
+                canvas.drawText(getIntent().getStringExtra("category") + "", pageWidth / 2, 320, titlepaint);
 
-                dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH);
-                myPaint.setTextSize(20);
-                canvas.drawText("Date:" + dateFormat.format(dateobj), pageWidth - 173, 400, myPaint);
+//                dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH);
+//                myPaint.setTextSize(22);
+//                canvas.drawText("Date:" + dateFormat.format(dateobj), pageWidth - 173, 312, myPaint);
 
                 
                 
                 myPaint.setStyle(Paint.Style.STROKE);
-                myPaint.setStrokeWidth(2);
-                canvas.drawRect(20, 432, pageWidth - 20, 471, myPaint);
+                myPaint.setStrokeWidth(3);
+                canvas.drawRect(20, 344, pageWidth - 20, 383, myPaint);
 
                 myPaint.setTextAlign(Paint.Align.LEFT);
                 myPaint.setStyle(Paint.Style.FILL);
-                myPaint.setTextSize(25);
-                canvas.drawText("Sr. No.", 40, 460, myPaint);
-                myPaint.setTextSize(25);
-                canvas.drawText("Item Name", 200, 460, myPaint);
-                myPaint.setTextSize(25);
-                canvas.drawText("Quantity", 900, 460, myPaint);
+                myPaint.setTextSize(28);
+                canvas.drawText("Sr. No.", 50, 372, myPaint);
+                myPaint.setTextSize(28);
+                canvas.drawText("Item Name", 260, 372, myPaint);
+                myPaint.setTextSize(28);
+                canvas.drawText("Quantity", 940, 372, myPaint);
                 Log.e("itemlist", itemList.size() + "");
                 Log.e("forloop2", itemList.get(1).getList_qty());
 
 
-                canvas.drawLine(180, 432, 180, 471, myPaint);
-                canvas.drawLine(880, 432, 880, 471, myPaint);
+                canvas.drawLine(180, 344, 180, 383, myPaint);
+                canvas.drawLine(880, 344, 880, 383, myPaint);
                 int k = 0;
 
-                int numberXMargin = 40;
-                int nameXMargin = 200;
-                int quantityXMargin = 900;
+                int numberXMargin = 65;
+                int nameXMargin = 260;
+                int quantityXMargin = 940;
+
+                Order myOrder = Order.getInstance();
+
+                if (myOrder.getPartyName()!=""){
+                    myPaint.setTextSize(25);
+                    canvas.drawText(myOrder.getPartyName()+"", 30, 312, myPaint);}
+
+                if (myOrder.getDate()!=""){
+                    myPaint.setTextSize(25);
+                    canvas.drawText(myOrder.getDate()+"", pageWidth - 170, 312, myPaint);}
 
                 for (list_item_model item: itemList) {
                     if (item.getList_qty() != null) {
                         if (item.getList_qty().length() > 0) {
-                            if(height + 35 <= pageHeight - 20) {
+                            if(height + 40 <= pageHeight - 20) {
                                 k++;
-                                height = height + 35;
-                                myPaint.setTextSize(25);
-                                canvas.drawText(String.valueOf(k), numberXMargin, height, myPaint);
-                                myPaint.setTextSize(25);
+                                height = height + 40;
+                                myPaint.setTextSize(28);
+                                canvas.drawText(String.valueOf(k)+".", numberXMargin, height, myPaint);
+                                myPaint.setTextSize(28);
                                 canvas.drawText(item.getList_Name(), nameXMargin, height, myPaint);
-                                myPaint.setTextSize(25);
+                                myPaint.setTextSize(28);
                                 canvas.drawText(item.getList_qty(), quantityXMargin, height, myPaint);
-                                canvas.drawLine(20, height + 10, pageWidth - 20, 10 + height, myPaint);
+                                myPaint.setStrokeWidth(1);
+                                canvas.drawLine(20, height + 12, pageWidth - 20, 12 + height, myPaint);
                             }
                             else {
                                 int topMargin = 50;
@@ -599,15 +788,15 @@ public class list_items extends AppCompatActivity {
                                 myPage = myPdfDocument.startPage(myPageInfo);
                                 canvas = myPage.getCanvas();
                                 myPaint.setStyle(Paint.Style.STROKE);
-                                myPaint.setStrokeWidth(2);
+                                myPaint.setStrokeWidth(3);
                                 canvas.drawRect(20, topMargin - 20, pageWidth - 20, topMargin + 19, myPaint);
                                 myPaint.setTextAlign(Paint.Align.LEFT);
                                 myPaint.setStyle(Paint.Style.FILL);
-                                myPaint.setTextSize(25);
+                                myPaint.setTextSize(28);
                                 canvas.drawText("Sr. No.", numberXMargin, topMargin+10, myPaint);
-                                myPaint.setTextSize(25);
+                                myPaint.setTextSize(28);
                                 canvas.drawText("Item Name", nameXMargin, topMargin+10, myPaint);
-                                myPaint.setTextSize(25);
+                                myPaint.setTextSize(28);
                                 canvas.drawText("Quantity", quantityXMargin, topMargin+10, myPaint);
                                 Log.e("itemlist", itemList.size() + "");
                                 Log.e("forloop2", itemList.get(1).getList_qty());
@@ -618,33 +807,37 @@ public class list_items extends AppCompatActivity {
 
                                 height = topMargin + 20;
                                 k++;
-                                height = height + 35;
-                                myPaint.setTextSize(25);
-                                canvas.drawText(String.valueOf(k), numberXMargin, height, myPaint);
-                                myPaint.setTextSize(25);
+                                height = height + 40;
+                                myPaint.setStrokeWidth(2);
+                                myPaint.setTextSize(28);
+                                canvas.drawText(String.valueOf(k)+".", numberXMargin, height, myPaint);
+                                myPaint.setTextSize(28);
                                 canvas.drawText(item.getList_Name(), nameXMargin, height, myPaint);
-                                myPaint.setTextSize(25);
+                                myPaint.setTextSize(28);
                                 canvas.drawText(item.getList_qty(), quantityXMargin, height, myPaint);
-                                canvas.drawLine(20, height + 10, pageWidth - 20, height + 10, myPaint);
+                                myPaint.setStrokeWidth(1);
+                                canvas.drawLine(20, height + 12, pageWidth - 20, height + 12, myPaint);
                             }
                         }
                     }
                 }
-                Dialog.dismiss();
+             //   Dialog.dismiss();
                 myPdfDocument.finishPage(myPage);
                 try {
-                    File file = new File(Environment.getExternalStorageDirectory(), getIntent().getStringExtra("category") + ".pdf");
+                 //   final File
+                            file = new File(Environment.getExternalStorageDirectory(), myOrder.getPartyName() +" "+ getIntent().getStringExtra("category") + ".pdf");
                     myPdfDocument.writeTo(new FileOutputStream(file));
+
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
                 myPdfDocument.close();
                 Toast.makeText(getApplicationContext(), "PDF Is Created", Toast.LENGTH_LONG).show();
-                Intent listintent = new Intent(list_items.this, Category.class);
-                startActivity(listintent);
-                Animatoo.animateSpin(list_items.this);
+//                Intent listintent = new Intent(list_items.this, Category.class);
+//                startActivity(listintent);
+//                Animatoo.animateSpin(list_items.this);
 
-            }
+            }}
         });
     }
 

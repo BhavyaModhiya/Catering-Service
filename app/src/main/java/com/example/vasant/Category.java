@@ -36,7 +36,7 @@ import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
 public class Category extends AppCompatActivity {
 
-     String stringFile;
+     Uri stringFileUri;
 //    = Environment.getExternalStorageDirectory().getPath()+File.separator + "11.pdf";
 
     private RecyclerView recyclerView;
@@ -118,33 +118,43 @@ public class Category extends AppCompatActivity {
             Intent filepath = new Intent(Intent.ACTION_GET_CONTENT);
             filepath.setType("*/*");
             startActivityForResult(filepath, 10);
-
-
         }
-
-
         return super.onOptionsItemSelected(item);
     }
 
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        switch (requestCode){
-            case 10:
-                if(resultCode==RESULT_OK){
-                   stringFile=data.getData().getPath()+File.separator;
-                    File file = new File(stringFile);
-                    if (!file.exists()) {
-                        Toast.makeText(this, "File doesn't exists", Toast.LENGTH_LONG).show();
-                        //  return;
-                    }
+        super.onActivityResult(requestCode, resultCode, data);
+        Log.d("CheckingFileUri", "onActivityResult: uri: " + data.toString());
+        if (requestCode == 10) {
+            if (resultCode == RESULT_OK) {
+                try {
+                    stringFileUri = data.getData();
+                    Log.d("CheckingFileUri", "onActivityResult: uri: " + stringFileUri.toString());
+                    File file = new File(stringFileUri.toString());
+//                    if (!file.exists()) {
+//                        Toast.makeText(this, "File doesn't exists", Toast.LENGTH_LONG).show();
+//                        //  return;
+//                    }
+                    file.setReadOnly();
+                    Log.d("OnShareActivityResult", "onActivityResult: File content: " + file.canRead());
+                    Log.d("OnShareActivityResult", "onActivityResult: Path: " + file.getAbsolutePath());
+                    Log.d("OnShareActivityResult", "onActivityResult: stringFile: " + data.getData().getPath() + "-------" + File.separator);
                     Intent intentShare = new Intent(Intent.ACTION_SEND);
-                    intentShare.setType("file/*");
-                    intentShare.putExtra(Intent.EXTRA_STREAM, Uri.parse("file://" + file));
-                    startActivity(Intent.createChooser(intentShare, "Share the file ..."));
+                    intentShare.setType("application/pdf");
+                    intentShare.setAction(Intent.ACTION_SEND);
+                    intentShare.putExtra(Intent.EXTRA_STREAM, Uri.parse("file://"+file.getAbsolutePath()));
+                    intentShare.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    intentShare.putExtra(Intent.EXTRA_SUBJECT, "Sharing this file");
+                    intentShare.putExtra(Intent.EXTRA_TEXT, "Sharing this file");
+//                    intentShare.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+//                    intentShare.addFlags(Intent.FLAG_GRANT_PREFIX_URI_PERMISSION);
+                    startActivity(Intent.createChooser(intentShare, "Share the file"));
+                } catch (Exception e) {
+                    Log.e("OnShareActivityResult", "onActivityResult: " + e.getStackTrace());
                 }
-
-            break;
+            }
         }
     }
 }

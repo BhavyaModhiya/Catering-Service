@@ -34,10 +34,23 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="5dp"
+        android:layout_marginBottom="16dp"
         android:text="@string/download_pdf"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.107"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/sharepdfbtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="93dp"
+        android:layout_marginEnd="69dp"
+        android:layout_marginBottom="16dp"
+        android:text="Share Pdf"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/pdfbtn" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
